@@ -42,7 +42,12 @@ class EnviroPlusDisplay:
     CURRENT_TEMPERATURE = 0
     CURRENT_HUMIDITY = 0
 
+    temp_icon = Image.open(f"{path}/icons/temperature.png")
+    humidity_icon = Image.open(f"{path}/icons/humidity.png")
+    trooper = Image.open(f"{path}/images/trooper80.png")
+
     def __init__(self, enabled:bool = True):
+        #logging.info(f"{self.HEIGHT}x{self.WIDTH}")
         self.enabled = enabled
         # Initialize display.
         self.disp.begin()
@@ -89,14 +94,15 @@ class EnviroPlusDisplay:
         fahrenheit = (self.CURRENT_TEMPERATURE * 1.8) + 32
         temp_string = f"{fahrenheit:.0f}°F"
         img = self.overlay_text(img, (35, 6), temp_string, self.font_lg)
-        temp_icon = Image.open(f"{self.path}/icons/temperature.png")
-        img.paste(temp_icon, (self.margin, 8), mask=temp_icon)
+        img.paste(self.temp_icon, (self.margin, 8), mask=self.temp_icon)
 
         # Humidity
         humidity_string = f"{self.CURRENT_HUMIDITY:.0f} %"
         img = self.overlay_text(img, (35, 44), humidity_string, self.font_lg)
-        humidity_icon = Image.open(f"{self.path}/icons/humidity.png")
-        img.paste(humidity_icon, (self.margin, 45), mask=humidity_icon)
+        img.paste(self.humidity_icon, (self.margin, 45), mask=self.humidity_icon)
+
+        # Trooper
+        img.paste(self.trooper, (85, 0), mask=self.trooper)
 
         self.disp.display(img)
 

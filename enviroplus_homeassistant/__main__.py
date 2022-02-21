@@ -23,7 +23,7 @@ def parse_args():
     ap.add_argument("--print-sensors", action="store_true", help="Print sensors and do nothing else")
     ap.add_argument("--prefix", default="homeassistant", help="the topic prefix to use when publishing readings, i.e. 'homeassistant'")
     ap.add_argument("--client-id", default="", help="the MQTT client identifier to use when connecting")
-    ap.add_argument("--interval", type=int, default=60, help="the duration in seconds between updates")
+    ap.add_argument("--interval", type=int, default=5, help="the duration in seconds between updates")
     ap.add_argument("--delay", type=int, default=30, help="the duration in seconds to allow the sensors to stabilise before starting to publish readings")
     ap.add_argument("--use-pms5003", default=False, action="store_true", help="if set, PM readings will be taken from the PMS5003 sensor")
     ap.add_argument("--use-cpu-comp", default=True, action="store_true", help="Use the CPU temp compensation.")
