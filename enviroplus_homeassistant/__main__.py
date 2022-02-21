@@ -11,6 +11,7 @@ logging.basicConfig(level=logging.INFO)
 from .publish import MqttPublisher
 from .discovery import HassDiscovery
 from .acquire import EnviroPlus
+from .display import EnviroPlusDisplay
 
 def parse_args():
     ap = argparse.ArgumentParser(add_help=False)
@@ -22,13 +23,13 @@ def parse_args():
     ap.add_argument("--print-sensors", action="store_true", help="Print sensors and do nothing else")
     ap.add_argument("--prefix", default="homeassistant", help="the topic prefix to use when publishing readings, i.e. 'homeassistant'")
     ap.add_argument("--client-id", default="", help="the MQTT client identifier to use when connecting")
-    ap.add_argument("--interval", type=int, default=5, help="the duration in seconds between updates")
-    ap.add_argument("--delay", type=int, default=15, help="the duration in seconds to allow the sensors to stabilise before starting to publish readings")
-    ap.add_argument("--use-pms5003", action="store_true", help="if set, PM readings will be taken from the PMS5003 sensor")
-    ap.add_argument("--use-cpu-comp", action="store_true", help="Use the CPU temp compensation.")
+    ap.add_argument("--interval", type=int, default=60, help="the duration in seconds between updates")
+    ap.add_argument("--delay", type=int, default=30, help="the duration in seconds to allow the sensors to stabilise before starting to publish readings")
+    ap.add_argument("--use-pms5003", default=False, action="store_true", help="if set, PM readings will be taken from the PMS5003 sensor")
+    ap.add_argument("--use-cpu-comp", default=True, action="store_true", help="Use the CPU temp compensation.")
     ap.add_argument("--no-retain-config", dest='retain_config', action="store_false", help="Do not set RETAIN flag on config messages.")
     ap.add_argument("--retain-state", action="store_true", help="Set RETAIN flag on state messages.")
-    ap.add_argument("--cpu-comp-factor", type=float, default=2.25, help="The factor to use for the CPU temp compensation. Decrease this number to adjust the temperature down, and increase to adjust up.")
+    ap.add_argument("--cpu-comp-factor", type=float, default=0.75, help="The factor to use for the CPU temp compensation. Decrease this number to adjust the temperature down, and increase to adjust up.")
     ap.add_argument("--help", action="help", help="print this help message and exit")
     return vars(ap.parse_args())
 
@@ -37,6 +38,8 @@ def main():
     args = parse_args()
 
     logging.info("Starting with arguments: %s", args)
+
+    display = EnviroPlusDisplay()
 
     discovery = HassDiscovery(
         use_pms5003=args["use_pms5003"],
@@ -58,7 +61,7 @@ def main():
         port=args["port"],
         username=args["username"],
         password=args["password"],
-        use_tls=True,
+        use_tls=False,
         on_connect=discovery.publish if not args['delete_sensors'] else discovery.publish_delete
     )
 
@@ -75,7 +78,7 @@ def main():
 
     # Take readings without publishing them for the specified delay period,
     # to allow the sensors time to warm up and stabilise
-    publish_start_time = time.time() + args["delay"]
+    publish_start_time = time.time()# + args["delay"]
     while time.time() < publish_start_time:
         acquire.update()
         time.sleep(1)
@@ -99,16 +102,24 @@ def main():
                 for sensor_name in acquire.samples[0].keys():
                     value_sum = sum([d[sensor_name] for d in acquire.samples])
                     value_avg = value_sum / len(acquire.samples)
+                    value_rnd = round(value_avg)
                     value = SensorPayload(
-                        value=value_avg
+                        value=value_rnd
                     )
                     topic = discovery.sensors[sensor_name].state_topic
                     publisher.publish_json(topic, value, retain=args['retain_state'])
 
+                    #logging.info(f"{sensor_name}: {value_rnd:.0f}")
+                    display.refresh(sensor_name, value_rnd)
+
             next_sample_time += 1
             sleep_duration = max(next_sample_time - time.time(), 0)
             time.sleep(sleep_duration)
-    
+
+    except (KeyboardInterrupt, SystemExit):
+        display.off()
+        print (' pressed. Exit program..')
+
     finally:
         publisher.destroy()
 

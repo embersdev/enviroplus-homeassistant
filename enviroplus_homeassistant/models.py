@@ -31,7 +31,7 @@ class DiscoverySensorConfig:
     device:DiscoveryDeviceConfig
     device_class:str = None
     unit_of_measurement:str = None
-    value_template:str="{{ value_json.value | round(1) }}"
+    value_template:str="{{ value_json.value | round(0) }}"
     expire_after: int = 15*60
     force_update: bool = True
     state_class: str = "measurement"

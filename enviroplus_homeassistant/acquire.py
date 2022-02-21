@@ -2,7 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-import collections, threading, traceback
+import collections, threading, traceback, logging
 
 try:
     # Transitional fix for breaking change in LTR559
@@ -58,7 +58,6 @@ class EnviroPlus:
                 traceback.print_exc()
                 pms.reset()
 
-
     def take_readings(self):
         gas_data = gas.read_all()
         readings = {
@@ -79,14 +78,20 @@ class EnviroPlus:
         
         return readings
 
+    def cpu_temp_factor(self, temp):
+        celsius_factor = (60 - temp) * 5
+        fraction = ((celsius_factor - 100) / 100) * 25
+        factor = (72 + fraction) / 100
+        return factor
+
     def compensate_readings(self, readings):
         self.cpu_samples.append(self.get_cpu_temperature())
         
         avg_cpu_temp = sum(self.cpu_samples) / float(len(self.cpu_samples))
 
         t_precomp = readings["temperature"] # RH source temp
-
-        readings["temperature"] = readings["temperature"] - ((avg_cpu_temp - readings["temperature"]) / self.cpu_comp_factor)
+ 
+        readings["temperature"] = readings["temperature"] - ((avg_cpu_temp - readings["temperature"]) / self.cpu_temp_factor(avg_cpu_temp))
 
         ah = calculate('AH', RH=readings["humidity"], p=readings['pressure'], p_unit="hPa", T=t_precomp, T_unit="degC")
         rh_comp = calculate('RH', AH=ah, p=readings['pressure'], p_unit="hPa", Tv=readings["temperature"], Tv_unit="degC") # Using the virtual temperature is close enough
