@@ -27,7 +27,7 @@ class EnviroPlusDisplay:
 
     # Fonts
     font_sm = ImageFont.truetype(UserFont, 12)
-    font_lg = ImageFont.truetype(UserFont, 25)
+    font_lg = ImageFont.truetype(UserFont, 30)
 
     # Text settings.
     font_size = 25
@@ -37,7 +37,7 @@ class EnviroPlusDisplay:
     back_colour = (0, 0, 0)
 
     # Margins
-    margin = 5
+    margin = 1
 
     CURRENT_TEMPERATURE = 0
     CURRENT_HUMIDITY = 0
@@ -93,16 +93,16 @@ class EnviroPlusDisplay:
 
         fahrenheit = (self.CURRENT_TEMPERATURE * 1.8) + 32
         temp_string = f"{fahrenheit:.0f}°F"
-        img = self.overlay_text(img, (35, 6), temp_string, self.font_lg)
+        img = self.overlay_text(img, (27, 4), temp_string, self.font_lg)
         img.paste(self.temp_icon, (self.margin, 8), mask=self.temp_icon)
 
         # Humidity
-        humidity_string = f"{self.CURRENT_HUMIDITY:.0f} %"
-        img = self.overlay_text(img, (35, 44), humidity_string, self.font_lg)
-        img.paste(self.humidity_icon, (self.margin, 45), mask=self.humidity_icon)
+        humidity_string = f"{self.CURRENT_HUMIDITY:.0f}%"
+        img = self.overlay_text(img, (27, 42), humidity_string, self.font_lg)
+        img.paste(self.humidity_icon, (self.margin, 47), mask=self.humidity_icon)
 
         # Trooper
-        img.paste(self.trooper, (85, 0), mask=self.trooper)
+        img.paste(self.trooper, (84, 0), mask=self.trooper)
 
         self.disp.display(img)
 
