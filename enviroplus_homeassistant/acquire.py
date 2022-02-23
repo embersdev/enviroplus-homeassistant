@@ -17,7 +17,7 @@ from enviroplus import gas
 from atmos import calculate
 
 class EnviroPlus:
-    def __init__(self, use_pms5003, num_samples, use_cpu_comp:bool=True, cpu_num_samples:int=5, cpu_comp_factor:float=2.25):
+    def __init__(self, use_pms5003, num_samples, use_cpu_comp:bool=True, cpu_num_samples:int=5, cpu_comp_factor:float=0.80):
         self.bme280 = BME280()
 
         self.samples = collections.deque(maxlen=num_samples)
@@ -80,9 +80,11 @@ class EnviroPlus:
 
     def cpu_temp_factor(self, temp):
         celsius_factor = (60 - temp) * 5
-        fraction = ((celsius_factor - 100) / 100) * 25
-        factor = (72 + fraction) / 100
+        fraction = ((celsius_factor - 100) / 100) * 20
+        factor = round(((72 + fraction) / 100), 2)
+        #logging.info(f"factor: {factor} / cpu_comp_factor: {self.cpu_comp_factor}")
         return factor
+        #return self.cpu_comp_factor
 
     def compensate_readings(self, readings):
         self.cpu_samples.append(self.get_cpu_temperature())
