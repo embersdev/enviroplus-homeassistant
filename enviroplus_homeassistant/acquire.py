@@ -81,7 +81,7 @@ class EnviroPlus:
     def cpu_temp_factor(self, temp):
         celsius_factor = (60 - temp) * 5
         fraction = ((celsius_factor - 100) / 100) * 20
-        factor = round(((72 + fraction) / 100), 2)
+        factor = round(((74 + fraction) / 100), 2)
         #logging.info(f"factor: {factor} / cpu_comp_factor: {self.cpu_comp_factor}")
         return factor
         #return self.cpu_comp_factor
